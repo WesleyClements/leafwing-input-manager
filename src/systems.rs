@@ -240,7 +240,11 @@ pub fn generate_action_diffs<A: Actionlike, ID: Eq + Clone + Component + Hash>(
             }
             match action_state.action_data(action.clone()).axis_pair {
                 Some(axis_pair) => {
-                    let previous_axis_pairs = previous_axis_pairs.get_mut(&action).unwrap();
+                    let previous_axis_pairs = previous_axis_pairs
+                        .raw_entry_mut()
+                        .from_key(&action)
+                        .or_insert_with(|| (action.clone(), HashMap::default()))
+                        .1;
 
                     if let Some(previous_axis_pair) = previous_axis_pairs.get(&id.clone()) {
                         if *previous_axis_pair == axis_pair.xy() {
@@ -256,7 +260,11 @@ pub fn generate_action_diffs<A: Actionlike, ID: Eq + Clone + Component + Hash>(
                 }
                 None => {
                     let value = action_state.value(action.clone());
-                    let previous_values = previous_values.get_mut(&action).unwrap();
+                    let previous_values = previous_values
+                        .raw_entry_mut()
+                        .from_key(&action)
+                        .or_insert_with(|| (action.clone(), HashMap::default()))
+                        .1;
 
                     if let Some(previous_value) = previous_values.get(&id.clone()) {
                         if *previous_value == value {
